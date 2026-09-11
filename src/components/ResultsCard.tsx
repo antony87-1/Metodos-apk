@@ -47,6 +47,7 @@ export function ResultsCard({ result }: ResultsCardProps) {
 
   return (
     <section
+      id="results-card"
       className={`animate-rise-in overflow-hidden rounded-2xl border shadow-panel ${
         result.converged
           ? 'border-emerald-300/60 bg-gradient-to-br from-emerald-950 via-slate-950 to-emerald-900'

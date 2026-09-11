@@ -17,11 +17,21 @@ import {
 import type { ChartPoint, Interval } from '../types/bisection'
 import { Guide } from './Guide'
 
+export interface ActiveStep {
+  a: number
+  b: number
+  c: number
+  fc: number
+  keep: [number, number]
+  discard: [number, number]
+}
+
 interface FunctionChartProps {
   data: ChartPoint[]
   interval: Interval | null
   root: number | null
   expression: string
+  step?: ActiveStep | null
 }
 
 function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: ChartPoint }> }) {
@@ -39,16 +49,21 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{
   )
 }
 
-export function FunctionChart({ data, interval, root, expression }: FunctionChartProps) {
+export function FunctionChart({ data, interval, root, expression, step }: FunctionChartProps) {
   const [hover, setHover] = useState<ChartPoint | null>(null)
   const [detailView, setDetailView] = useState(true)
 
+  const focusInterval = useMemo<Interval | null>(
+    () => (step ? { a: step.a, b: step.b } : interval),
+    [step, interval],
+  )
+
   const xDomain = useMemo<[number, number]>(() => {
-    if (!detailView || !interval) return [-10, 10]
-    const width = interval.b - interval.a
+    if (!detailView || !focusInterval) return [-10, 10]
+    const width = focusInterval.b - focusInterval.a
     const padding = Math.max(width * 0.14, 0.08)
-    return [interval.a - padding, interval.b + padding]
-  }, [detailView, interval])
+    return [focusInterval.a - padding, focusInterval.b + padding]
+  }, [detailView, focusInterval])
 
   const displayData = useMemo(
     () => data.filter((point) => point.x >= xDomain[0] && point.x <= xDomain[1]),
@@ -61,15 +76,15 @@ export function FunctionChart({ data, interval, root, expression }: FunctionChar
   }
 
   return (
-    <section className="panel min-w-0 overflow-hidden" aria-labelledby="chart-title">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-gradient-to-r from-indigo-50/70 to-transparent px-5 py-4 sm:px-6">
+    <section className="panel flex h-full min-w-0 flex-col overflow-hidden" aria-labelledby="chart-title">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-gradient-to-r from-indigo-50/70 to-transparent px-4 py-3.5 sm:px-5">
         <div className="flex items-center gap-3">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-200">
+          <span className="panel-icon bg-indigo-600 shadow-indigo-200">
             <Activity size={19} aria-hidden="true" />
           </span>
           <div>
             <p className="eyebrow">Vista cartesiana</p>
-            <h2 id="chart-title" className="text-lg font-semibold text-slate-950">Gráfica de la función</h2>
+            <h2 id="chart-title" className="text-base font-semibold text-slate-950 sm:text-lg">Gráfica de la función</h2>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -82,18 +97,20 @@ export function FunctionChart({ data, interval, root, expression }: FunctionChar
           <button
             type="button"
             onClick={() => setDetailView((current) => !current)}
-            disabled={!interval}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-indigo-300 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={!focusInterval}
+            className="chip"
             title={detailView ? 'Mostrar todo el rango analizado' : 'Acercar al intervalo seleccionado'}
           >
             {detailView ? <Maximize2 size={13} aria-hidden="true" /> : <ScanSearch size={13} aria-hidden="true" />}
             {detailView ? 'Ver [−10, 10]' : 'Acercar a [a, b]'}
           </button>
-          <span className="max-w-full truncate rounded-lg bg-slate-100 px-3 py-1.5 font-mono text-xs text-slate-600">f(x) = {expression}</span>
+          <span className="hidden max-w-full truncate rounded-lg bg-slate-100 px-3 py-1.5 font-mono text-xs text-slate-600 sm:inline">
+            f(x) = {expression}
+          </span>
         </div>
       </div>
 
-      <div className="h-[430px] p-2 sm:h-[560px] sm:p-4 xl:h-[640px]">
+      <div className="min-h-[300px] flex-1 p-2 sm:p-4">
         {data.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
@@ -132,24 +149,37 @@ export function FunctionChart({ data, interval, root, expression }: FunctionChar
                 tickCount={9}
                 tickFormatter={(value: number) => Number(value.toPrecision(4)).toString()}
               />
-              <Tooltip
-                content={<ChartTooltip />}
-                cursor={{ stroke: '#6366f1', strokeWidth: 1.2, strokeDasharray: '4 4' }}
-              />
+              <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#6366f1', strokeWidth: 1.2, strokeDasharray: '4 4' }} />
 
               <ReferenceLine y={0} stroke="#475569" strokeWidth={1.3} />
               <ReferenceLine x={0} stroke="#94a3b8" strokeWidth={1} />
 
-              {interval && (
+              {step ? (
                 <>
-                  <ReferenceArea x1={interval.a} x2={interval.b} fill="#f97316" fillOpacity={0.12} stroke="#f97316" strokeOpacity={0.45} />
-                  <ReferenceLine x={interval.a} stroke="#f97316" strokeDasharray="5 4" strokeOpacity={0.75}>
-                    <Label value="a" position="top" fill="#ea580c" fontSize={12} fontWeight={700} />
+                  <ReferenceArea x1={step.discard[0]} x2={step.discard[1]} fill="#64748b" fillOpacity={0.16} stroke="#94a3b8" strokeOpacity={0.4} strokeDasharray="4 4" />
+                  <ReferenceArea x1={step.keep[0]} x2={step.keep[1]} fill="#10b981" fillOpacity={0.18} stroke="#10b981" strokeOpacity={0.55} />
+                  <ReferenceLine x={step.a} stroke="#f97316" strokeDasharray="5 4" strokeOpacity={0.85}>
+                    <Label value="aᵢ" position="top" fill="#ea580c" fontSize={12} fontWeight={700} />
                   </ReferenceLine>
-                  <ReferenceLine x={interval.b} stroke="#f97316" strokeDasharray="5 4" strokeOpacity={0.75}>
-                    <Label value="b" position="top" fill="#ea580c" fontSize={12} fontWeight={700} />
+                  <ReferenceLine x={step.b} stroke="#f97316" strokeDasharray="5 4" strokeOpacity={0.85}>
+                    <Label value="bᵢ" position="top" fill="#ea580c" fontSize={12} fontWeight={700} />
+                  </ReferenceLine>
+                  <ReferenceLine x={step.c} stroke="#4f46e5" strokeWidth={1.8}>
+                    <Label value="cᵢ" position="top" fill="#4338ca" fontSize={12} fontWeight={700} />
                   </ReferenceLine>
                 </>
+              ) : (
+                focusInterval && (
+                  <>
+                    <ReferenceArea x1={focusInterval.a} x2={focusInterval.b} fill="#f97316" fillOpacity={0.12} stroke="#f97316" strokeOpacity={0.45} />
+                    <ReferenceLine x={focusInterval.a} stroke="#f97316" strokeDasharray="5 4" strokeOpacity={0.75}>
+                      <Label value="a" position="top" fill="#ea580c" fontSize={12} fontWeight={700} />
+                    </ReferenceLine>
+                    <ReferenceLine x={focusInterval.b} stroke="#f97316" strokeDasharray="5 4" strokeOpacity={0.75}>
+                      <Label value="b" position="top" fill="#ea580c" fontSize={12} fontWeight={700} />
+                    </ReferenceLine>
+                  </>
+                )
               )}
 
               <Area type="monotone" dataKey="y" stroke="none" fill="url(#curveFill)" connectNulls={false} isAnimationActive={false} />
@@ -162,7 +192,11 @@ export function FunctionChart({ data, interval, root, expression }: FunctionChar
                 <ReferenceDot x={hover.x} y={hover.y} r={4.5} fill="#4f46e5" stroke="#fff" strokeWidth={2} isFront />
               )}
 
-              {root !== null && (
+              {step && (
+                <ReferenceDot x={step.c} y={step.fc} r={6} fill="#4f46e5" stroke="#fff" strokeWidth={2.5} isFront />
+              )}
+
+              {root !== null && !step && (
                 <ReferenceDot x={root} y={0} r={6} fill="#f97316" stroke="#fff" strokeWidth={3} isFront>
                   <Label value="raíz" position="bottom" fill="#ea580c" fontSize={11} fontWeight={700} offset={10} />
                 </ReferenceDot>
@@ -174,24 +208,35 @@ export function FunctionChart({ data, interval, root, expression }: FunctionChar
             <div className="max-w-xs px-6">
               <Activity className="mx-auto mb-3 text-slate-300" size={36} aria-hidden="true" />
               <p className="font-medium text-slate-600">La gráfica aparecerá aquí</p>
-              <p className="mt-1 text-sm leading-5 text-slate-400">Ingresa una función válida y presiona “Graficar”.</p>
+              <p className="mt-1 text-sm leading-5 text-slate-400">Escribe una función o elige un ejemplo y presiona “Graficar”.</p>
             </div>
           </div>
         )}
       </div>
 
-      <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-100 px-5 py-3 text-xs font-medium text-slate-500 sm:px-6">
+      <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-100 px-4 py-2.5 text-xs font-medium text-slate-500 sm:px-5">
         <Guide title="Curva de f(x)" detail="Trazo de la función evaluada punto a punto. Donde cruza el eje horizontal hay una raíz." className="items-center gap-2" focusable>
           <i className="h-0.5 w-5 rounded bg-indigo-600" />Función
         </Guide>
         <Guide title="Intervalo activo [a, b]" detail="Zona naranja donde el método está buscando. Con cada iteración este bloque se reduce a la mitad." className="items-center gap-2" focusable>
           <i className="h-3 w-5 rounded bg-orange-200" />Intervalo
         </Guide>
-        <Guide title="Raíz aproximada" detail="Punto final que devuelve el método: el valor de x donde f(x) ≈ 0 dentro de la tolerancia pedida." className="items-center gap-2" focusable>
-          <i className="h-2.5 w-2.5 rounded-full bg-orange-500 ring-2 ring-orange-100" />Raíz
-        </Guide>
-        <span className="ml-auto hidden items-center gap-1.5 text-slate-400 sm:inline-flex">
-          <Crosshair size={13} aria-hidden="true" /> Cuadrícula activa · mueve el puntero para leer coordenadas
+        {step ? (
+          <>
+            <Guide title="Mitad conservada" detail="Tramo verde donde se mantiene el cambio de signo: ahí sigue estando la raíz." className="items-center gap-2" focusable>
+              <i className="h-3 w-5 rounded bg-emerald-200" />Se conserva
+            </Guide>
+            <Guide title="Mitad descartada" detail="Tramo gris que se elimina porque en él la función no cambia de signo." className="items-center gap-2" focusable>
+              <i className="h-3 w-5 rounded bg-slate-300" />Se descarta
+            </Guide>
+          </>
+        ) : (
+          <Guide title="Raíz aproximada" detail="Punto final que devuelve el método: el valor de x donde f(x) ≈ 0 dentro de la tolerancia pedida." className="items-center gap-2" focusable>
+            <i className="h-2.5 w-2.5 rounded-full bg-orange-500 ring-2 ring-orange-100" />Raíz
+          </Guide>
+        )}
+        <span className="ml-auto hidden items-center gap-1.5 text-slate-400 lg:inline-flex">
+          <Crosshair size={13} aria-hidden="true" /> Mueve el puntero para leer coordenadas
         </span>
       </div>
     </section>

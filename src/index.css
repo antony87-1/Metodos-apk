@@ -45,6 +45,28 @@
   .formula { @apply break-words font-mono text-sm leading-6 text-indigo-700; }
   .guide-target { @apply cursor-help decoration-slate-300 decoration-dotted underline-offset-4; }
   .metric-tile { @apply min-w-0 bg-white/[0.07] px-3 py-4 transition-colors duration-200 hover:bg-white/[0.16]; }
+  .panel-head { @apply flex items-center gap-3 border-b border-slate-100 bg-gradient-to-r from-indigo-50/70 to-transparent px-4 py-3.5 sm:px-5; }
+  .panel-icon { @apply grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white shadow-md; }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-indigo-300 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40; }
+  .icon-button { @apply grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-slate-200 disabled:hover:bg-white disabled:hover:text-slate-600; }
+}
+
+@layer utilities {
+  .tour-highlight {
+    position: relative;
+    z-index: 45;
+    border-radius: 1rem;
+    outline: 3px solid #f97316;
+    outline-offset: 4px;
+    animation: tour-glow 1.6s ease-in-out infinite;
+  }
+  @keyframes tour-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.35); }
+    50% { box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
+  }
+  .scroll-soft { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

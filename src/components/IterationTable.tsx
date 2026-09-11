@@ -31,7 +31,7 @@ export function IterationTable({ iterations }: IterationTableProps) {
   const lastIndex = iterations.length - 1
 
   return (
-    <section className="panel animate-rise-in overflow-hidden" aria-labelledby="table-title">
+    <section id="iteration-table" className="panel animate-rise-in overflow-hidden" aria-labelledby="table-title">
       <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-indigo-50/70 to-transparent px-5 py-4 sm:px-6">
         <div className="flex items-center gap-3">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-200">

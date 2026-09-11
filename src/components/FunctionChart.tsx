@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Activity, Crosshair } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Activity, Crosshair, Maximize2, ScanSearch } from 'lucide-react'
 import {
   Area,
   CartesianGrid,
@@ -41,6 +41,19 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{
 
 export function FunctionChart({ data, interval, root, expression }: FunctionChartProps) {
   const [hover, setHover] = useState<ChartPoint | null>(null)
+  const [detailView, setDetailView] = useState(true)
+
+  const xDomain = useMemo<[number, number]>(() => {
+    if (!detailView || !interval) return [-10, 10]
+    const width = interval.b - interval.a
+    const padding = Math.max(width * 0.14, 0.08)
+    return [interval.a - padding, interval.b + padding]
+  }, [detailView, interval])
+
+  const displayData = useMemo(
+    () => data.filter((point) => point.x >= xDomain[0] && point.x <= xDomain[1]),
+    [data, xDomain],
+  )
 
   const handleMove = (state: { activePayload?: Array<{ payload: ChartPoint }> } | null) => {
     const point = state?.activePayload?.[0]?.payload
@@ -66,16 +79,26 @@ export function FunctionChart({ data, interval, root, expression }: FunctionChar
               x {hover.x.toFixed(2)} · f(x) {hover.y?.toFixed(4)}
             </span>
           )}
+          <button
+            type="button"
+            onClick={() => setDetailView((current) => !current)}
+            disabled={!interval}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-indigo-300 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+            title={detailView ? 'Mostrar todo el rango analizado' : 'Acercar al intervalo seleccionado'}
+          >
+            {detailView ? <Maximize2 size={13} aria-hidden="true" /> : <ScanSearch size={13} aria-hidden="true" />}
+            {detailView ? 'Ver [−10, 10]' : 'Acercar a [a, b]'}
+          </button>
           <span className="max-w-full truncate rounded-lg bg-slate-100 px-3 py-1.5 font-mono text-xs text-slate-600">f(x) = {expression}</span>
         </div>
       </div>
 
-      <div className="h-[340px] p-3 sm:h-[440px] sm:p-5">
+      <div className="h-[430px] p-2 sm:h-[560px] sm:p-4 xl:h-[640px]">
         {data.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
-              data={data}
-              margin={{ top: 16, right: 18, bottom: 8, left: -8 }}
+              data={displayData}
+              margin={{ top: 18, right: 24, bottom: 14, left: 0 }}
               onMouseMove={handleMove}
               onMouseLeave={() => setHover(null)}
             >
@@ -86,9 +109,29 @@ export function FunctionChart({ data, interval, root, expression }: FunctionChar
                 </linearGradient>
               </defs>
 
-              <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 5" vertical={false} />
-              <XAxis dataKey="x" type="number" domain={[-10, 10]} tickCount={11} stroke="#94a3b8" fontSize={12} tickLine={false} />
-              <YAxis domain={['auto', 'auto']} stroke="#94a3b8" fontSize={12} tickLine={false} width={50} />
+              <CartesianGrid stroke="#cbd5e1" strokeDasharray="2 4" vertical horizontal strokeOpacity={0.82} />
+              <XAxis
+                dataKey="x"
+                type="number"
+                domain={xDomain}
+                allowDataOverflow
+                tickCount={detailView ? 9 : 11}
+                stroke="#64748b"
+                fontSize={12}
+                tickLine={false}
+                axisLine={{ stroke: '#94a3b8' }}
+                tickFormatter={(value: number) => Number(value.toFixed(detailView ? 2 : 0)).toString()}
+              />
+              <YAxis
+                domain={['auto', 'auto']}
+                stroke="#64748b"
+                fontSize={12}
+                tickLine={false}
+                axisLine={{ stroke: '#94a3b8' }}
+                width={62}
+                tickCount={9}
+                tickFormatter={(value: number) => Number(value.toPrecision(4)).toString()}
+              />
               <Tooltip
                 content={<ChartTooltip />}
                 cursor={{ stroke: '#6366f1', strokeWidth: 1.2, strokeDasharray: '4 4' }}
@@ -138,32 +181,17 @@ export function FunctionChart({ data, interval, root, expression }: FunctionChar
       </div>
 
       <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-100 px-5 py-3 text-xs font-medium text-slate-500 sm:px-6">
-        <Guide
-          title="Curva de f(x)"
-          detail="Trazo de la función evaluada punto a punto. Donde cruza el eje horizontal hay una raíz."
-          className="items-center gap-2"
-          focusable
-        >
+        <Guide title="Curva de f(x)" detail="Trazo de la función evaluada punto a punto. Donde cruza el eje horizontal hay una raíz." className="items-center gap-2" focusable>
           <i className="h-0.5 w-5 rounded bg-indigo-600" />Función
         </Guide>
-        <Guide
-          title="Intervalo activo [a, b]"
-          detail="Zona naranja donde el método está buscando. Con cada iteración este bloque se reduce a la mitad."
-          className="items-center gap-2"
-          focusable
-        >
+        <Guide title="Intervalo activo [a, b]" detail="Zona naranja donde el método está buscando. Con cada iteración este bloque se reduce a la mitad." className="items-center gap-2" focusable>
           <i className="h-3 w-5 rounded bg-orange-200" />Intervalo
         </Guide>
-        <Guide
-          title="Raíz aproximada"
-          detail="Punto final que devuelve el método: el valor de x donde f(x) ≈ 0 dentro de la tolerancia pedida."
-          className="items-center gap-2"
-          focusable
-        >
+        <Guide title="Raíz aproximada" detail="Punto final que devuelve el método: el valor de x donde f(x) ≈ 0 dentro de la tolerancia pedida." className="items-center gap-2" focusable>
           <i className="h-2.5 w-2.5 rounded-full bg-orange-500 ring-2 ring-orange-100" />Raíz
         </Guide>
         <span className="ml-auto hidden items-center gap-1.5 text-slate-400 sm:inline-flex">
-          <Crosshair size={13} aria-hidden="true" /> Mueve el puntero sobre la curva para leer coordenadas
+          <Crosshair size={13} aria-hidden="true" /> Cuadrícula activa · mueve el puntero para leer coordenadas
         </span>
       </div>
     </section>

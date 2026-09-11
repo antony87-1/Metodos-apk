@@ -4,6 +4,7 @@ import { FunctionChart } from './components/FunctionChart'
 import { FunctionForm } from './components/FunctionForm'
 import { IterationTable } from './components/IterationTable'
 import { MethodExplanation } from './components/MethodExplanation'
+import { ProgrammingPanel } from './components/ProgrammingPanel'
 import { ResultsCard } from './components/ResultsCard'
 import { SuggestedIntervals } from './components/SuggestedIntervals'
 import type { BisectionResult, ChartPoint, Interval } from './types/bisection'
@@ -96,7 +97,7 @@ function App() {
       <header className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white">
         <div className="pointer-events-none absolute -right-24 -top-32 h-72 w-72 rounded-full bg-indigo-500/25 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-40 left-1/3 h-64 w-64 rounded-full bg-cyan-400/15 blur-3xl" />
-        <div className="relative mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-[1600px] px-4 py-7 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="relative grid h-11 w-11 place-items-center rounded-2xl bg-indigo-500 shadow-lg shadow-indigo-950">
@@ -122,8 +123,8 @@ function App() {
         <div className="h-1 bg-gradient-to-r from-indigo-500 via-cyan-400 to-orange-400" />
       </header>
 
-      <main className="mx-auto max-w-[1440px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <div className="grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
+      <main className="mx-auto max-w-[1600px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="grid items-start gap-6 lg:grid-cols-[350px_minmax(0,1fr)]">
           <div className="space-y-6 lg:sticky lg:top-6">
             <FunctionForm
               expression={expression} a={a} b={b} tolerance={tolerance} maxIterations={maxIterations} error={error}
@@ -149,8 +150,9 @@ function App() {
         )}
 
         <MethodExplanation />
+        <ProgrammingPanel expression={expression} a={a} b={b} tolerance={tolerance} maxIterations={maxIterations} />
       </main>
-      <footer className="mx-auto max-w-[1440px] px-4 pb-8 text-center text-sm text-slate-400 sm:px-6">Método cerrado · Convergencia garantizada cuando f(a) · f(b) &lt; 0</footer>
+      <footer className="mx-auto max-w-[1600px] px-4 pb-8 text-center text-sm text-slate-400 sm:px-6">Método cerrado · Convergencia garantizada cuando f(a) · f(b) &lt; 0</footer>
     </div>
   )
 }

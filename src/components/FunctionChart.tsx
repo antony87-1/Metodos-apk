@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Activity, Crosshair, Maximize2, ScanSearch } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Activity, Crosshair, Maximize2, RotateCcw, ScanSearch, ZoomIn, ZoomOut } from 'lucide-react'
 import {
   Area,
   CartesianGrid,
@@ -52,18 +52,30 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{
 export function FunctionChart({ data, interval, root, expression, step }: FunctionChartProps) {
   const [hover, setHover] = useState<ChartPoint | null>(null)
   const [detailView, setDetailView] = useState(true)
+  const [zoomScale, setZoomScale] = useState(1)
 
   const focusInterval = useMemo<Interval | null>(
     () => (step ? { a: step.a, b: step.b } : interval),
     [step, interval],
   )
 
-  const xDomain = useMemo<[number, number]>(() => {
+  useEffect(() => {
+    setZoomScale(1)
+  }, [focusInterval?.a, focusInterval?.b])
+
+  const baseDomain = useMemo<[number, number]>(() => {
     if (!detailView || !focusInterval) return [-10, 10]
     const width = focusInterval.b - focusInterval.a
     const padding = Math.max(width * 0.14, 0.08)
     return [focusInterval.a - padding, focusInterval.b + padding]
   }, [detailView, focusInterval])
+
+  const xDomain = useMemo<[number, number]>(() => {
+    const [baseMin, baseMax] = baseDomain
+    const center = (baseMin + baseMax) / 2
+    const halfWidth = Math.min(10, Math.max(0.1, ((baseMax - baseMin) * zoomScale) / 2))
+    return [Math.max(-10, center - halfWidth), Math.min(10, center + halfWidth)]
+  }, [baseDomain, zoomScale])
 
   const displayData = useMemo(
     () => data.filter((point) => point.x >= xDomain[0] && point.x <= xDomain[1]),
@@ -74,6 +86,20 @@ export function FunctionChart({ data, interval, root, expression, step }: Functi
     const point = state?.activePayload?.[0]?.payload
     setHover(point && point.y !== null ? point : null)
   }
+
+  const zoomIn = () => setZoomScale((current) => Math.max(0.15, current * 0.7))
+  const zoomOut = () => setZoomScale((current) => Math.min(20, current / 0.7))
+  const showInterval = () => {
+    setDetailView(true)
+    setZoomScale(1)
+  }
+  const showAll = () => {
+    setDetailView(false)
+    setZoomScale(1)
+  }
+
+  const isAtMinimumZoom = xDomain[1] - xDomain[0] <= 0.201
+  const isShowingAll = xDomain[0] <= -9.999 && xDomain[1] >= 9.999
 
   return (
     <section className="panel flex h-full min-w-0 flex-col overflow-hidden" aria-labelledby="chart-title">
@@ -94,16 +120,55 @@ export function FunctionChart({ data, interval, root, expression, step }: Functi
               x {hover.x.toFixed(2)} · f(x) {hover.y?.toFixed(4)}
             </span>
           )}
-          <button
-            type="button"
-            onClick={() => setDetailView((current) => !current)}
-            disabled={!focusInterval}
-            className="chip"
-            title={detailView ? 'Mostrar todo el rango analizado' : 'Acercar al intervalo seleccionado'}
-          >
-            {detailView ? <Maximize2 size={13} aria-hidden="true" /> : <ScanSearch size={13} aria-hidden="true" />}
-            {detailView ? 'Ver [−10, 10]' : 'Acercar a [a, b]'}
-          </button>
+
+          <div className="inline-flex items-center overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm" role="group" aria-label="Controles de zoom">
+            <button
+              type="button"
+              onClick={zoomIn}
+              disabled={isAtMinimumZoom}
+              className="grid h-8 w-9 place-items-center border-r border-slate-200 text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-35"
+              title="Acercar gráfica"
+              aria-label="Acercar gráfica"
+            >
+              <ZoomIn size={15} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={zoomOut}
+              disabled={isShowingAll}
+              className="grid h-8 w-9 place-items-center border-r border-slate-200 text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-35"
+              title="Alejar gráfica"
+              aria-label="Alejar gráfica"
+            >
+              <ZoomOut size={15} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={showInterval}
+              disabled={!focusInterval}
+              className="grid h-8 w-9 place-items-center border-r border-slate-200 text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-35"
+              title="Restablecer al intervalo [a, b]"
+              aria-label="Restablecer zoom al intervalo"
+            >
+              <RotateCcw size={14} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={showAll}
+              className="inline-flex h-8 items-center gap-1.5 px-2.5 text-xs font-semibold text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+              title="Mostrar la gráfica completa en [−10, 10]"
+            >
+              <Maximize2 size={14} aria-hidden="true" />
+              Todo
+            </button>
+          </div>
+
+          {!detailView && focusInterval && (
+            <button type="button" onClick={showInterval} className="chip" title="Acercar al intervalo seleccionado">
+              <ScanSearch size={13} aria-hidden="true" /> Intervalo
+            </button>
+          )}
+
           <span className="hidden max-w-full truncate rounded-lg bg-slate-100 px-3 py-1.5 font-mono text-xs text-slate-600 sm:inline">
             f(x) = {expression}
           </span>
@@ -236,7 +301,7 @@ export function FunctionChart({ data, interval, root, expression, step }: Functi
           </Guide>
         )}
         <span className="ml-auto hidden items-center gap-1.5 text-slate-400 lg:inline-flex">
-          <Crosshair size={13} aria-hidden="true" /> Mueve el puntero para leer coordenadas
+          <Crosshair size={13} aria-hidden="true" /> Usa +/− para explorar o “Todo” para ver la curva completa
         </span>
       </div>
     </section>

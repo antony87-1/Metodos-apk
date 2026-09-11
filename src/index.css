@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -11,24 +11,40 @@
     min-width: 320px;
     min-height: 100vh;
     background:
-      radial-gradient(circle at 80% 0%, rgba(79, 70, 229, 0.08), transparent 28rem),
-      #f4f7fb;
+      radial-gradient(circle at 82% -6%, rgba(79, 70, 229, 0.16), transparent 34rem),
+      radial-gradient(circle at 4% 12%, rgba(14, 165, 233, 0.12), transparent 30rem),
+      radial-gradient(circle at 50% 108%, rgba(249, 115, 22, 0.1), transparent 32rem),
+      #f2f5fb;
     color: #0f172a;
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
   button, input { font: inherit; }
   button { cursor: pointer; }
+  ::selection { background: rgba(79, 70, 229, 0.18); }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border: 3px solid transparent; background-clip: content-box; border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; background-clip: content-box; }
 }
 
 @layer components {
-  .panel { @apply rounded-2xl border border-slate-200/80 bg-white shadow-panel; }
+  .panel {
+    @apply rounded-2xl border border-white/70 bg-white/85 shadow-panel backdrop-blur-xl transition-shadow duration-300;
+  }
+  .panel:hover { @apply shadow-glow; }
   .label { @apply text-sm font-semibold text-slate-700; }
   .eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400; }
-  .button-primary { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-200 active:translate-y-px; }
-  .button-secondary { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-100; }
-  .step-number { @apply inline-grid h-7 min-w-7 place-items-center rounded-lg bg-slate-900 px-2 font-mono text-xs font-bold text-white; }
+  .button-primary {
+    @apply relative inline-flex min-h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-violet-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-300/60 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-300 focus:outline-none focus:ring-4 focus:ring-indigo-200 active:translate-y-0;
+  }
+  .button-secondary {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-indigo-100 active:translate-y-0;
+  }
+  .step-number { @apply inline-grid h-7 min-w-7 place-items-center rounded-lg bg-gradient-to-br from-slate-900 to-slate-700 px-2 font-mono text-xs font-bold text-white; }
   .formula { @apply break-words font-mono text-sm leading-6 text-indigo-700; }
+  .guide-target { @apply cursor-help decoration-slate-300 decoration-dotted underline-offset-4; }
+  .metric-tile { @apply min-w-0 bg-white/[0.07] px-3 py-4 transition-colors duration-200 hover:bg-white/[0.16]; }
 }
 
 @media (prefers-reduced-motion: reduce) {

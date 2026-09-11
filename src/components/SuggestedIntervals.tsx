@@ -1,5 +1,6 @@
 import { MousePointerClick, ScanSearch } from 'lucide-react'
 import type { Interval } from '../types/bisection'
+import { Guide } from './Guide'
 
 interface SuggestedIntervalsProps {
   intervals: Interval[]
@@ -12,7 +13,7 @@ export function SuggestedIntervals({ intervals, selected, hasGraphed, onSelect }
   return (
     <section className="panel p-5 sm:p-6" aria-labelledby="intervals-title">
       <div className="mb-4 flex items-start gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-orange-50 text-orange-600">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-orange-500 text-white shadow-md shadow-orange-200">
           <ScanSearch size={19} aria-hidden="true" />
         </span>
         <div>
@@ -34,19 +35,26 @@ export function SuggestedIntervals({ intervals, selected, hasGraphed, onSelect }
           {intervals.map((interval) => {
             const isSelected = selected?.a === interval.a && selected?.b === interval.b
             return (
-              <button
-                type="button"
+              <Guide
                 key={`${interval.a}-${interval.b}`}
-                onClick={() => onSelect(interval)}
-                className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 font-mono text-sm font-semibold transition ${
-                  isSelected
-                    ? 'border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                    : 'border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:bg-indigo-50'
-                }`}
+                title={`Intervalo [${interval.a}, ${interval.b}]`}
+                detail="Aquí la función cambia de signo, así que el teorema de Bolzano garantiza al menos una raíz dentro. Haz clic para cargarlo en el formulario."
+                formula="f(a) · f(b) < 0"
+                placement="top"
               >
-                <MousePointerClick size={15} aria-hidden="true" />
-                [{interval.a}, {interval.b}]
-              </button>
+                <button
+                  type="button"
+                  onClick={() => onSelect(interval)}
+                  className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 font-mono text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 ${
+                    isSelected
+                      ? 'border-indigo-600 bg-indigo-600 text-white shadow-md shadow-indigo-200'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md'
+                  }`}
+                >
+                  <MousePointerClick size={15} aria-hidden="true" />
+                  [{interval.a}, {interval.b}]
+                </button>
+              </Guide>
             )
           })}
         </div>

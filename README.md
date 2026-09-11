@@ -2,6 +2,14 @@
 
 Aplicación educativa construida con React, TypeScript, Vite, Tailwind CSS, mathjs y Recharts. Permite interpretar una función sin usar `eval()`, graficarla, detectar intervalos con cambio de signo y resolver una raíz exclusivamente mediante el Método de Bisección.
 
+## Características
+
+- **Guías al apuntar con el puntero**: pasa el cursor (o tabula con el teclado) sobre campos, botones, encabezados de la tabla y métricas para ver una tarjeta explicativa con su definición y fórmula.
+- **Gráfica interactiva**: guías cruzadas que siguen el puntero, lectura de coordenadas en vivo, área con degradado, marcas de los extremos `a` y `b` y del punto raíz.
+- **Detección automática de intervalos** con cambio de signo en `[−10, 10]`.
+- **Tabla de iteraciones** con la fila final resaltada y cada columna documentada.
+- **Parser seguro** de expresiones sin `eval()`: valida el AST y limita los símbolos permitidos.
+
 ## Requisitos
 
 - Node.js 18 o superior

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Binary, GraduationCap } from 'lucide-react'
+import { Binary, GraduationCap, MousePointer2 } from 'lucide-react'
 import { FunctionChart } from './components/FunctionChart'
 import { FunctionForm } from './components/FunctionForm'
 import { IterationTable } from './components/IterationTable'
@@ -93,18 +93,29 @@ function App() {
 
   return (
     <div className="min-h-screen">
-      <header className="overflow-hidden bg-slate-950 text-white">
-        <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8">
+      <header className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white">
+        <div className="pointer-events-none absolute -right-24 -top-32 h-72 w-72 rounded-full bg-indigo-500/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-40 left-1/3 h-64 w-64 rounded-full bg-cyan-400/15 blur-3xl" />
+        <div className="relative mx-auto max-w-[1440px] px-4 py-7 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-indigo-500 shadow-lg shadow-indigo-950"><Binary size={23} /></span>
+              <span className="relative grid h-11 w-11 place-items-center rounded-2xl bg-indigo-500 shadow-lg shadow-indigo-950">
+                <span className="absolute inset-0 rounded-2xl bg-indigo-400 animate-pulse-ring" aria-hidden="true" />
+                <Binary size={23} className="relative" aria-hidden="true" />
+              </span>
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-300">Laboratorio numérico</p>
                 <h1 className="mt-0.5 text-xl font-bold tracking-tight sm:text-2xl">Método de Bisección</h1>
               </div>
             </div>
-            <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 sm:flex">
-              <GraduationCap size={17} /> Análisis interactivo de raíces
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 backdrop-blur">
+                <MousePointer2 size={16} className="text-cyan-300" aria-hidden="true" />
+                Apunta a cualquier elemento para ver su guía
+              </span>
+              <span className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 backdrop-blur lg:inline-flex">
+                <GraduationCap size={17} aria-hidden="true" /> Análisis interactivo de raíces
+              </span>
             </div>
           </div>
         </div>
